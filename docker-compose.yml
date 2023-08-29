@@ -1,0 +1,41 @@
+version: "3.9"  # Compose ファイルのバージョン
+
+services:
+  app:  # サービス名
+    build:
+      context: .  # ビルドコンテキスト（ビルドする場所）
+      dockerfile: ./docker/app/Dockerfile # ビルドする Dockerfile へのパス
+    volumes:
+      - ./src/:/app # ホストの ./src/ をコンテナの /app へマウント
+
+  web:  # サービス名
+    build:
+      context: .
+      dockerfile: ./docker/web/Dockerfile
+    ports:
+      - 8081:80 # ホスト側のポート番号 : コンテナのポート番号
+    depends_on:
+      - app # サービスの起動順序
+    volumes:
+      - ./src/:/app
+
+  db: # サービス名
+    build:
+      context: .
+      dockerfile: ./docker/db/Dockerfile
+    platform: linux/amd64
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - mysql-volume:/var/lib/mysql
+
+# Docker Volume コンテナを破棄してもデータを永続的に保存できる
+# コンテナ外のデータ保存領域
+volumes:
+  mysql-volume:
